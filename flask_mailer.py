@@ -4,7 +4,8 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication
 
-from flask import Flask, render_template, redirect, url_for, request
+from flask import Flask, render_template, redirect, url_for, request, send_from_directory
+
 
 import config
 
@@ -21,7 +22,7 @@ def send_mail(sender_email, smtp_username, smtp_password, smtp_server, port, tim
     msg.attach(MIMEText(body, "html"))
 
     if fname:
-        with open(fname, "rb") as f:
+        with open(os.path.join(config.UPLOAD_FOLDER, fname), "rb") as f:
             attach_file = MIMEApplication(f.read())
             attach_file.add_header('Content-Disposition', 'attachment', filename=os.path.basename(fname))
             msg.attach(attach_file)
@@ -43,6 +44,12 @@ def parse_email(email_list):
     return email_list.split()
 
 
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    return send_from_directory(config.UPLOAD_FOLDER,
+                               filename)
+
+
 @app.route('/', methods=['GET'])
 def main_get():
     # r = send_mail(["vitalij.banit@gmail.com", "oldtigersvoice@gmail.com"], "test spam", "Hello!")
@@ -53,13 +60,16 @@ def main_get():
 
 @app.route('/', methods=['POST'])
 def main_post():
+    _file = request.files.get("file")
+    _file.save(os.path.join(config.UPLOAD_FOLDER, _file.filename))
     r = send_mail(request.form.get("sender_email") or config.SMTP_USERNAME,
                   request.form.get("smtp_username") or config.SMTP_USERNAME,
                   request.form.get("smtp_password") or config.SMTP_PASSWORD,
                   request.form.get("smtp_server") or config.SMTP_SERVER,
                   request.form.get("smtp_port") or config.PORT,
                   config.TIMEOUT, parse_email(request.form.get("list")),
-                  request.form.get("subject"), request.form.get("message"))
+                  request.form.get("subject"), request.form.get("message"),
+                  request.files.get("file").filename)
     # if not r:
     #     raise Exception("Error send email")
     return redirect(url_for('main_get'))
