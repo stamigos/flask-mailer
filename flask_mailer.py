@@ -12,14 +12,14 @@ import config
 app = Flask(__name__)
 
 
-def send_mail(sender_email, smtp_username, smtp_password, smtp_server, port, timeout, toaddrs, subject, body, fname=None):
+def send_mail(sender_email, smtp_username, smtp_password, smtp_server, port, timeout, toaddrs, subject, body, content_type, fname=None):
     fromaddr = sender_email
 
     msg = MIMEMultipart()
     msg['From'] = fromaddr
     msg['Subject'] = subject
 
-    msg.attach(MIMEText(body, "html"))
+    msg.attach(MIMEText(body, content_type))
 
     if fname:
         with open(os.path.join(config.UPLOAD_FOLDER, fname), "rb") as f:
@@ -61,7 +61,8 @@ def main_get():
 @app.route('/', methods=['POST'])
 def main_post():
     _file = request.files.get("file")
-    _file.save(os.path.join(config.UPLOAD_FOLDER, _file.filename))
+    if _file:
+        _file.save(os.path.join(config.UPLOAD_FOLDER, _file.filename))
     r = send_mail(request.form.get("sender_email") or config.SMTP_USERNAME,
                   request.form.get("smtp_username") or config.SMTP_USERNAME,
                   request.form.get("smtp_password") or config.SMTP_PASSWORD,
@@ -69,7 +70,8 @@ def main_post():
                   request.form.get("smtp_port") or config.PORT,
                   config.TIMEOUT, parse_email(request.form.get("list")),
                   request.form.get("subject"), request.form.get("message"),
-                  request.files.get("file").filename)
+                  request.form.get("content_type"),
+                  request.files.get("file").filename if _file else None)
     # if not r:
     #     raise Exception("Error send email")
     return redirect(url_for('main_get'))
