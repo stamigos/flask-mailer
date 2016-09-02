@@ -52,9 +52,6 @@ def uploaded_file(filename):
 
 @app.route('/', methods=['GET'])
 def main_get():
-    # r = send_mail(["vitalij.banit@gmail.com", "oldtigersvoice@gmail.com"], "test spam", "Hello!")
-    # if not r:
-    #     raise Exception("Error send email")
     return render_template("mailer.html")
 
 
@@ -72,8 +69,6 @@ def main_post():
                   request.form.get("subject"), request.form.get("message"),
                   request.form.get("content_type"),
                   request.files.get("file").filename if _file else None)
-    # if not r:
-    #     raise Exception("Error send email")
     return redirect(url_for('main_get'))
 
 
