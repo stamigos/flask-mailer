@@ -29,6 +29,9 @@ def send_mail(sender_email, smtp_username, smtp_password, smtp_server, port, tim
 
     server = None
     try:
+        print 'smtp_server: ', smtp_server
+        print 'smtp_username: ', smtp_username
+        print 'smtp_port: ', port
         server = smtplib.SMTP_SSL(smtp_server, port, timeout=timeout)
         server.login(smtp_username, smtp_password)
         text = msg.as_string()
@@ -60,15 +63,16 @@ def main_post():
     _file = request.files.get("file")
     if _file:
         _file.save(os.path.join(config.UPLOAD_FOLDER, _file.filename))
+
     r = send_mail(request.form.get("sender_email") or config.SMTP_USERNAME,
                   request.form.get("smtp_username") or config.SMTP_USERNAME,
                   request.form.get("smtp_password") or config.SMTP_PASSWORD,
                   request.form.get("smtp_server") or config.SMTP_SERVER,
-                  request.form.get("smtp_port") or config.PORT,
+                  int(request.form.get("smtp_port")) or config.PORT,
                   config.TIMEOUT, parse_email(request.form.get("list")),
                   request.form.get("subject"), request.form.get("message"),
                   request.form.get("content_type"),
-                  request.files.get("file").filename if _file else None)
+                  _file.filename if _file else None)
     return redirect(url_for('main_get'))
 
 
