@@ -29,9 +29,6 @@ def send_mail(sender_email, smtp_username, smtp_password, smtp_server, port, tim
 
     server = None
     try:
-        print 'smtp_server: ', smtp_server
-        print 'smtp_username: ', smtp_username
-        print 'smtp_port: ', port
         server = smtplib.SMTP_SSL(smtp_server, port, timeout=timeout)
         server.login(smtp_username, smtp_password)
         text = msg.as_string()
